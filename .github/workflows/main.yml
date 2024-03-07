@@ -43,7 +43,7 @@ jobs:
         pip install -r myapp/requirements.txt
 
     - name: Run Migrations
-      run: python manage.py myapp/migrate
+      run: python myapp/manage.py migrate
 
     - name: Run Account Tests
       run: python myapp/manage.py test accounts.tests
