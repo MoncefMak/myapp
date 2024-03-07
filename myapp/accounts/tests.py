@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from myapp.accounts.models import User
+from accounts.models import User
 
 
 class UserAPITestCase(TestCase):
