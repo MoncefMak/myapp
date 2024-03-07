@@ -1,9 +1,9 @@
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView  # new
 
-from myapp.accounts.models import User
-from myapp.api.permissions import UserPermissions
-from myapp.api.serializer.serializers_user import UserSerializer, UserUpdateSerializer, LogInSerializer
+from accounts.models import User
+from api.permissions import UserPermissions
+from api.serializer.serializers_user import UserSerializer, UserUpdateSerializer, LogInSerializer
 
 
 class UserCreateAPIView(CreateAPIView):

@@ -139,3 +139,4 @@ GitHub.sublime-settings
 # History and view files
 .history
 .idea
+/venv/
