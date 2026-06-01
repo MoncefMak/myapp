@@ -1,0 +1,22 @@
+"""URL configuration for the authservice project.
+
+Routes:
+- /admin/        Django admin
+- /api/          User accounts & JWT auth API (see api/urls.py)
+- /api/schema/   OpenAPI 3 schema (drf-spectacular)
+- /api/docs/     Swagger UI
+"""
+from django.contrib import admin
+from django.urls import include, path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path(
+        'api/docs/',
+        SpectacularSwaggerView.as_view(url_name='schema'),
+        name='swagger-ui',
+    ),
+]

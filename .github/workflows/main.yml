@@ -4,15 +4,20 @@ on:
   push:
     branches:
       - master
+  pull_request:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        # The Django project (manage.py) lives in the authservice/ subdirectory.
+        working-directory: authservice
 
     services:
       postgres:
-        image: postgres
+        image: postgres:16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -22,28 +27,45 @@ jobs:
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
+    env:
+      SECRET_KEY: ci-only-test-key-3f8b2c9d1a7e4056b8c2d4f6a1e3c5b7d9f0a2c4e6b8d0f2-not-prod
+      DEBUG: 0
+      ALLOWED_HOSTS: 127.0.0.1,localhost
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: github_actions
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v1
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.11
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: authservice/requirements.txt
 
-    - name: Install PostgreSQL Prerequisites
-      run: |
-        sudo apt-get update
-        sudo apt-get install libpq-dev
+      - name: Install PostgreSQL Prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
 
-    - name: Install Python Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r myapp/requirements.txt
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt coverage
 
-    - name: Run Migrations
-      run: python myapp/manage.py migrate
+      - name: Run Migrations
+        run: python manage.py migrate
 
-    - name: Run Account Tests
-      run: python myapp/manage.py test accounts.tests
+      - name: Django Deploy Checks
+        run: python manage.py check --deploy --fail-level WARNING
+
+      - name: Run Tests with Coverage
+        run: |
+          coverage run manage.py test
+          coverage report
