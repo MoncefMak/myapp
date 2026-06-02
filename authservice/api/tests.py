@@ -3,13 +3,16 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from accounts.models import User
 
 PASSWORD = "Str0ngPass!42"
 
 
+# Production hardening turns on SECURE_SSL_REDIRECT when DEBUG is off (as in CI),
+# which would 301-redirect the HTTP test client. Disable it for API tests.
+@override_settings(SECURE_SSL_REDIRECT=False)
 class UserAPITestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
