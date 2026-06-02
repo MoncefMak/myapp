@@ -75,6 +75,7 @@ Base path: `/api/`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | `POST` | `/api/users/` | — | Register a new user |
+| `GET` | `/api/users/` | JWT (admin) | List all users |
 | `GET` | `/api/users/{id}/` | JWT (owner) | Retrieve own profile |
 | `PATCH` / `PUT` | `/api/users/{id}/` | JWT (owner) | Update own profile |
 | `POST` | `/api/login/` | — | Obtain access + refresh tokens |

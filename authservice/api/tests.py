@@ -26,7 +26,7 @@ class UserAPITestCase(TestCase):
 
     # --- create / registration -------------------------------------------------
     def test_create_user_persists_and_hashes_password(self):
-        url = reverse("user-create")
+        url = reverse("user-list-create")
         data = {
             "username": "newuser",
             "email": "newuser@example.com",
@@ -42,7 +42,7 @@ class UserAPITestCase(TestCase):
         self.assertTrue(created.check_password(PASSWORD))
 
     def test_create_user_rejects_weak_password(self):
-        url = reverse("user-create")
+        url = reverse("user-list-create")
         data = {"username": "weak", "email": "weak@example.com", "password": "123"}
         response = self.client.post(url, data, format="json")
 
@@ -51,16 +51,41 @@ class UserAPITestCase(TestCase):
         self.assertFalse(User.objects.filter(email="weak@example.com").exists())
 
     def test_create_user_rejects_duplicate_email(self):
-        url = reverse("user-create")
+        url = reverse("user-list-create")
         data = {"username": "dup", "email": "test@example.com", "password": PASSWORD}
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_user_rejects_duplicate_username(self):
-        url = reverse("user-create")
+        url = reverse("user-list-create")
         data = {"username": "testuser", "email": "fresh@example.com", "password": PASSWORD}
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # --- list (admin-only) -----------------------------------------------------
+    def test_admin_can_list_users(self):
+        admin = User.objects.create_superuser(
+            username="admin", email="admin@example.com", password=PASSWORD
+        )
+        self.authenticate(admin)
+        response = self.client.get(reverse("user-list-create"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        emails = {u["email"] for u in response.data}
+        self.assertIn("test@example.com", emails)
+        self.assertIn("admin@example.com", emails)
+
+    def test_regular_user_cannot_list_users(self):
+        self.authenticate(self.user)
+        response = self.client.get(reverse("user-list-create"))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_anonymous_cannot_list_users(self):
+        response = self.client.get(reverse("user-list-create"))
+        self.assertIn(
+            response.status_code,
+            [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
+        )
 
     # --- retrieve --------------------------------------------------------------
     def test_retrieve_own_user(self):
